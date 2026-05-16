@@ -12,9 +12,15 @@
  */
 
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "./_tokens.css";
 
 @custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
+
+@keyframes aurora {
+  from { background-position: 50% 50%, 50% 50%; }
+  to   { background-position: 350% 50%, 350% 50%; }
+}
 
 @layer base {
   html {
@@ -38,7 +44,48 @@
 
   /* No backdrop-blur or overflow:hidden — both force an expensive compositing layer */
   .login-card {
-    @apply bg-panel-bg border-border relative flex flex-col gap-7 rounded-4xl border p-14 shadow-lg [contain:layout_style] max-md:rounded-3xl max-md:p-9;
+    @apply bg-panel-bg border-border relative flex flex-col gap-7 rounded-4xl border p-14 shadow-lg animate-in fade-in-0 slide-in-from-top-2 fill-mode-both max-md:rounded-3xl max-md:p-9;
+  }
+
+  /* Aurora animated background ─────────────────────────────────── */
+  .login-aurora {
+    @apply absolute inset-0 overflow-hidden pointer-events-none;
+  }
+
+  .login-aurora-inner {
+    /* Custom-property gradients: acceptable raw CSS (not styling utilities) */
+    --aurora-gradient: repeating-linear-gradient(
+      100deg,
+      var(--primary) 10%,
+      var(--progress-bar-end) 15%,
+      var(--info) 20%,
+      var(--link) 25%,
+      var(--primary) 30%
+    );
+    --light-stripe: repeating-linear-gradient(
+      100deg,
+      oklch(1 0 0) 0%, oklch(1 0 0) 7%,
+      transparent 10%, transparent 12%,
+      oklch(1 0 0) 16%
+    );
+    --dark-stripe: repeating-linear-gradient(
+      100deg,
+      oklch(0 0 0) 0%, oklch(0 0 0) 7%,
+      transparent 10%, transparent 12%,
+      oklch(0 0 0) 16%
+    );
+
+    @apply absolute -inset-[10px] opacity-50 blur-[10px] invert will-change-transform;
+    @apply [background-image:var(--light-stripe),var(--aurora-gradient)];
+    @apply [background-size:300%,_200%] [background-position:50%_50%,50%_50%];
+    @apply [mask-image:radial-gradient(ellipse_at_100%_0%,black_10%,transparent_70%)];
+    @apply dark:invert-0 dark:[background-image:var(--dark-stripe),var(--aurora-gradient)];
+
+    &::after {
+      @apply content-[''] absolute inset-0 bg-fixed mix-blend-difference [animation:aurora_60s_linear_infinite];
+      @apply [background-image:var(--light-stripe),var(--aurora-gradient)] [background-size:200%,_100%];
+      @apply dark:[background-image:var(--dark-stripe),var(--aurora-gradient)];
+    }
   }
 
   .login-brand {
@@ -93,8 +140,7 @@
   /* Focus ring on ::after whose only changing property is opacity — runs entirely on the
      compositor thread, eliminating the ~400 ms INP Presentation delay on pointer events */
   .input-wrap::after {
-    content: '';
-    @apply absolute -inset-0.5 border-2 border-primary opacity-0 pointer-events-none rounded-[calc(var(--radius-2xl)+var(--spacing)*0.5)] [will-change:opacity] [transition:opacity_120ms_ease];
+    @apply content-[''] absolute -inset-0.5 border-2 border-primary opacity-0 pointer-events-none rounded-[calc(var(--radius-2xl)+var(--spacing)*0.5)] [will-change:opacity] [transition:opacity_120ms_ease];
   }
 
   .input-wrap:focus-within::after {
