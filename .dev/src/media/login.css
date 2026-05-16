@@ -12,7 +12,6 @@
  */
 
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "./_tokens.css";
 
 @custom-variant dark (&:where([data-darkmode=true], [data-darkmode=true] *));
@@ -44,12 +43,13 @@
 
   /* No backdrop-blur or overflow:hidden — both force an expensive compositing layer */
   .login-card {
-    @apply bg-panel-bg border-border relative flex flex-col gap-7 rounded-4xl border p-14 shadow-lg animate-in fade-in-0 slide-in-from-top-2 fill-mode-both max-md:rounded-3xl max-md:p-9;
+    @apply bg-panel-bg border-border relative flex flex-col gap-7 rounded-4xl border p-14 shadow-lg max-md:rounded-3xl max-md:p-9;
   }
 
   /* Aurora animated background ─────────────────────────────────── */
   .login-aurora {
-    @apply absolute inset-0 overflow-hidden pointer-events-none;
+    /* contain:paint isolates repaint to this element — input events don't invalidate it */
+    @apply absolute inset-0 overflow-hidden pointer-events-none [contain:paint];
   }
 
   .login-aurora-inner {
@@ -75,6 +75,7 @@
       oklch(0 0 0) 16%
     );
 
+    /* will-change:transform promotes to its own compositor layer — blur filter stays cached */
     @apply absolute -inset-[10px] opacity-50 blur-[10px] invert will-change-transform;
     @apply [background-image:var(--light-stripe),var(--aurora-gradient)];
     @apply [background-size:300%,_200%] [background-position:50%_50%,50%_50%];
@@ -82,7 +83,8 @@
     @apply dark:invert-0 dark:[background-image:var(--dark-stripe),var(--aurora-gradient)];
 
     &::after {
-      @apply content-[''] absolute inset-0 bg-fixed mix-blend-difference [animation:aurora_60s_linear_infinite];
+      /* bg-fixed (background-attachment:fixed) blocks GPU compositing — omit it */
+      @apply content-[''] absolute inset-0 [will-change:transform] [animation:aurora_60s_linear_infinite];
       @apply [background-image:var(--light-stripe),var(--aurora-gradient)] [background-size:200%,_100%];
       @apply dark:[background-image:var(--dark-stripe),var(--aurora-gradient)];
     }
