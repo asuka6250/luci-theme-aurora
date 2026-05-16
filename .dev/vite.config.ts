@@ -396,6 +396,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: resolve(CURRENT_DIR, "src/media/main.css"),
+          login: resolve(CURRENT_DIR, "src/media/login.css"),
         },
         output: {
           assetFileNames: "aurora/[name].[ext]",
